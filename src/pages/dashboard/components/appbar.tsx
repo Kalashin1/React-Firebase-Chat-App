@@ -1,9 +1,14 @@
-import { useState } from "react";
-
+import { useContext, useState } from "react";
+import { DashBoardContex } from "..";
 const Appbar = () => {
-  const [showSubMenu, 
+  const [
+    showSubMenu,
     // setShowSubMenu
   ] = useState(false);
+
+  const { chatUser } = useContext(DashBoardContex);
+  
+
   return (
     <div className="relative z-10 flex h-[61px] left-80 w-9/12 shrink-0 items-center justify-between border-b border-slate-150 bg-white px-[calc(var(--margin-x)-.5rem)] shadow-sm transition-[padding,width] duration-[.25s] dark:border-navy-700 dark:bg-navy-800">
       <div className="flex items-center space-x-5">
@@ -14,22 +19,23 @@ const Appbar = () => {
             <span></span>
           </button>
         </div>
-        <div
-          data-toggle="drawer"
-          data-target="#chat-detail"
-          className="flex cursor-pointer items-center space-x-4 font-inter"
-        >
-          <div className="rounded-full h-10 w-10 flex justify-center items-center border border-gray-600 relative">
-            K
-            
+        {chatUser && (
+          <div
+            data-toggle="drawer"
+            data-target="#chat-detail"
+            className="flex cursor-pointer items-center space-x-4 font-inter"
+          >
+            <div className="rounded-full h-10 w-10 flex justify-center items-center border border-gray-600 relative">
+              {chatUser?.fullName.slice(0, 1)}
+            </div>
+            <div>
+              <p className="line-clamp-1 font-medium text-slate-700 dark:text-navy-100">
+                {chatUser?.fullName}
+              </p>
+              <p className="mt-0.5 text-xs">Last seen recently</p>
+            </div>
           </div>
-          <div>
-            <p className="line-clamp-1 font-medium text-slate-700 dark:text-navy-100">
-              Konnor Guzman
-            </p>
-            <p className="mt-0.5 text-xs">Last seen recently</p>
-          </div>
-        </div>
+        )}
       </div>
       <div className="mr-1 flex items-center">
         <button className="flex justify-center items-center h-9 w-9 rounded-full p-0 text-slate-500 hover:bg-slate-300/20 focus:bg-slate-300/20 active:bg-slate-300/25 dark:text-navy-200 dark:hover:bg-navy-300/20 dark:focus:bg-navy-300/20 dark:active:bg-navy-300/25 sm:flex">

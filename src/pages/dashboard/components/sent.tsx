@@ -1,27 +1,37 @@
+import { Message } from "../../../types";
 import Asset from "./asset";
 
-const SentMessage = () => {
+const SentMessage = ({
+  encoder,
+  textContent,
+  createdAt,
+  assetURL,
+}: Message) => {
   return (
     <div className="space-x-2.5 my-2 px-2 sm:space-x-5">
       <div className="flex items-start justify-end space-x-2.5 ">
         <div className="flex flex-col items-end space-y-3.5">
           <div className="ml-4 max-w-lg sm:ml-10">
             <div className="rounded-2xl rounded-tr-none bg-sky-200 p-3 text-slate-700 shadow-sm">
-              Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-              Assumenda necessitatibus, ratione. Voluptatum.
+              {textContent}
             </div>
             <p className="ml-auto mt-1 text-left text-xs text-slate-400 dark:text-navy-300">
-              08:16
+              {new Intl.DateTimeFormat("en-US", {
+                minute: "2-digit",
+                hour: "2-digit",
+              }).format(new Date(createdAt))}
             </p>
           </div>
         </div>
         <div className="rounded-full w-10 h-10 bg-red-500 flex justify-center items-center">
-          <span>K</span>
+          <span>{encoder?.fullName?.slice(0, 1)?.toUpperCase()}</span>
         </div>
       </div>
-      <div className="flex items-start justify-end space-x-2.5 ">
-        <Asset />
-      </div>
+      {assetURL && (
+        <div className="flex items-start justify-end space-x-2.5 ">
+          <Asset />
+        </div>
+      )}
     </div>
   );
 };

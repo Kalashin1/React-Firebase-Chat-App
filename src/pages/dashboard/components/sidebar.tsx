@@ -1,4 +1,60 @@
+import { useContext, useEffect, useState } from "react";
+import { getUserChats, getUsers } from "../../../helper";
+import { NotificationComponent, notify } from "./notification";
+import { DocumentData } from "firebase/firestore";
+import { auth } from "../../../firebase-settings";
+import { useNavigate } from "react-router-dom";
+import { SCREENS } from "../../../navigation/constants";
+import { DashBoardContex } from "..";
+import { Chat } from "../../../types";
+
 const Sidebar = () => {
+  const [users, setUsers] = useState<DocumentData[]>([]);
+  const [chats, setChats] = useState<Chat[]>([]);
+
+  const { setSelectedUserId } = useContext(DashBoardContex);
+
+  useEffect(() => {
+    const set_up = async () => {
+      const [err, data] = await getUserChats(auth.currentUser?.uid as string);
+      if (data) {
+        setChats(data);
+      }
+
+      if (err) {
+        console.log(err);
+      }
+    };
+
+    set_up();
+  }, []);
+
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const _getUsers = async () => {
+      const currentUser = auth.currentUser;
+      if (!currentUser) navigate(SCREENS.LOGIN, { replace: true });
+      else {
+        const [error, _users] = await getUsers(currentUser.displayName!);
+
+        if (error) {
+          notify(<NotificationComponent message="Error fetching users" />, {
+            style: { background: "red", color: "white" },
+          });
+          console.log(error);
+        }
+
+        if (_users) {
+          setUsers(_users);
+        }
+      }
+    };
+
+    _getUsers();
+  }, [navigate]);
+
   return (
     <div className="flex fixed l-2 w-3/12 min-h-screen flex-col bg-gray-50 shadow-md pl-[var(--main-sidebar-width)] dark:bg-navy-750">
       {/* <!-- Sidebar Panel Header --> */}
@@ -43,7 +99,7 @@ const Sidebar = () => {
         </button>
       </div>
 
-      {/* <!-- Sidebar Panel Body --> */}
+      {/* <!-- ALL USERS --> */}
       <div className="flex mt-8 h-[calc(100%-4.5rem)] grow flex-col">
         <div>
           <div className="flex items-center justify-between px-4">
@@ -72,29 +128,29 @@ const Sidebar = () => {
             className="swiper px-4 swiper-initialized swiper-horizontal"
           >
             <div
-              className="swiper-wrapper mt-1"
+              className="flex flex-row items-center"
               id="swiper-wrapper-9e86fba92498dba10"
               aria-live="polite"
             >
-              <div
-                className="swiper-slide flex w-11 shrink-0 flex-col items-center justify-center swiper-slide-active"
-                role="group"
-                aria-label="1 / 18"
-                style={{ marginRight: "10px" }}
-              >
-                <div className="h-11 w-11 flex items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-orange-600 p-0.5">
-                  K
-                </div>
-                <p className="mt-1 line-clamp-1 w-14 break-words text-center text-xs text-slate-600 dark:text-navy-100">
-                  Konnor
-                </p>
-              </div>
+              {users &&
+                users.map((user, index) => (
+                  <div
+                    className="flex w-11 shrink-0 flex-col items-center justify-center cursor-pointer"
+                    role="group"
+                    aria-label="1 / 18"
+                    key={index}
+                    onClick={() => setSelectedUserId!(user.id)}
+                    style={{ marginRight: "10px" }}
+                  >
+                    <div className="h-11 w-11 flex items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-orange-600 p-0.5">
+                      {user?.fullName?.slice(0, 1)?.toUpperCase()}
+                    </div>
+                    <p className="mt-1 line-clamp-1 w-14 break-words text-center text-xs text-slate-600 dark:text-navy-100">
+                      {user?.fullName}
+                    </p>
+                  </div>
+                ))}
             </div>
-            <span
-              className="swiper-notification"
-              aria-live="assertive"
-              aria-atomic="true"
-            ></span>
           </div>
         </div>
 
@@ -137,30 +193,50 @@ const Sidebar = () => {
         </div>
 
         <div className="is-scrollbar-hidden mt-3 flex grow flex-col overflow-y-auto">
-          <div className="flex cursor-pointer items-center space-x-2.5 px-4 py-2.5 font-inter hover:bg-slate-150 dark:hover:bg-navy-600">
-            <div className="rounded-full h-10 w-10 flex justify-center items-center border border-gray-600 relative">
-              K
-              <div className="absolute right-0 -top-0.5 h-3 w-3 rounded-full border-2 border-white bg-red-300 dark:border-navy-700"></div>
-            </div>
-            <div className="flex flex-1 flex-col">
-              <div className="flex items-baseline justify-between space-x-1.5">
-                <p className="line-clamp-1 text-xs+ font-medium text-slate-700 dark:text-navy-100">
-                  Alfredo Elliott
-                </p>
-                <span className="text-tiny+ text-slate-400 dark:text-navy-300">
-                  11:03
-                </span>
+          {chats.map((chat) => (
+            <div
+              onClick={() =>
+                setSelectedUserId!(
+                  chat.messages[0].encoder.id === auth.currentUser?.uid
+                    ? chat.messages[0].decoder?.id
+                    : chat.messages[0].encoder.id
+                )
+              }
+              className="flex cursor-pointer items-center space-x-2.5 px-4 py-2.5 font-inter hover:bg-slate-150 dark:hover:bg-navy-600"
+            >
+              <div className="rounded-full h-10 w-10 flex justify-center items-center border border-gray-600 relative">
+                {chat.messages[0].encoder.id === auth.currentUser?.uid
+                  ? chat.messages[0].decoder?.fullName.slice(0, 1)
+                  : chat.messages[0].encoder.fullName.slice(0, 1)}
+                <div className="absolute right-0 -top-0.5 h-3 w-3 rounded-full border-2 border-white bg-red-300 dark:border-navy-700"></div>
               </div>
-              <div className="mt-1 flex items-center justify-between space-x-1">
-                <p className="line-clamp-1 text-xs+ text-slate-400 dark:text-navy-300">
-                  😂 Lorem ipsum dolor
-                </p>
-                <div className="flex h-4.5 min-w-[1.125rem] items-center justify-center rounded-full bg-slate-200 px-1.5 text-tiny+ font-medium leading-none text-slate-800 dark:bg-navy-450 dark:text-white">
-                  5
+              <div className="flex flex-1 flex-col">
+                <div className="flex items-baseline justify-between space-x-1.5">
+                  <p className="line-clamp-1 text-xs+ font-medium text-slate-700 dark:text-navy-100">
+                    {chat.messages[0].encoder.id === auth.currentUser?.uid
+                      ? chat.messages[0].decoder?.fullName
+                      : chat.messages[0].encoder.fullName}
+                  </p>
+                  <span className="text-tiny+ text-slate-400 dark:text-navy-300">
+                    {new Intl.DateTimeFormat("en-US", {
+                      minute: "2-digit",
+                      hour: "2-digit",
+                    }).format(
+                      new Date(chat.messages.at(-1)?.createdAt as number)
+                    )}
+                  </span>
+                </div>
+                <div className="mt-1 flex items-center justify-between space-x-1">
+                  <p className="line-clamp-1 text-xs+ text-slate-400 dark:text-navy-300">
+                    {chat.messages.at(-1)?.textContent.slice(0, 30)}
+                  </p>
+                  <div className="flex h-4.5 min-w-[1.125rem] items-center justify-center rounded-full bg-slate-200 px-1.5 text-tiny+ font-medium leading-none text-slate-800 dark:bg-navy-450 dark:text-white">
+                    5
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          ))}
         </div>
 
         <div className="flex h-12 shrink-0 justify-between border-t border-slate-150 px-1.5 pt-2 dark:border-navy-600">

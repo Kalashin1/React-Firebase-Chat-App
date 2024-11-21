@@ -1,7 +1,51 @@
+import { FormEvent, useContext, useRef } from "react";
+import { DashBoardContex } from "..";
+import { auth } from "../../../firebase-settings";
+import { getChat, sendMessage } from "../../../helper";
+import { Message } from "../../../types";
+
 const SendMessage = () => {
+  const { selectedChat, chatUser, updateSelectedChat } =
+    useContext(DashBoardContex);
+  const formRef = useRef<HTMLFormElement | null>(null);
+
+  console.log("selected chat", selectedChat)
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    const {
+      message: { value: message },
+    } = formRef.current!;
+    const _message: Partial<Message> = {
+      createdAt: new Date().getTime(),
+      decoder: chatUser!,
+      encoder: {
+        id: auth.currentUser!.uid!,
+        fullName: auth.currentUser!.displayName!,
+      },
+      textContent: message,
+      event: "MESSAGE_CREATED",
+      status: "CREATED",
+    };
+    const [error, message_id] = await sendMessage(_message, selectedChat?.id);
+    if (error) {
+      console.log("message error", error);
+    } else if (message_id) {
+      formRef.current!["message"]["value"] = "";
+
+      const [, _chat] = await getChat(message_id as string);
+      if (_chat) updateSelectedChat!(_chat);
+    }
+  };
+
   return (
-    <div className="z-50 bg-white fixed flex h-12 w-9/12 shrink-0 items-center justify-between border-t border-slate-150 bottom-0 px-[calc(var(--margin-x)-.25rem)] transition-[padding,width] duration-[.25s] dark:border-navy-600 dark:bg-navy-800">
+    <form
+      ref={formRef}
+      onSubmit={handleSubmit}
+      className="z-50 bg-white fixed flex h-12 w-9/12 shrink-0 items-center justify-between border-t border-slate-150 bottom-0 px-[calc(var(--margin-x)-.25rem)] transition-[padding,width] duration-[.25s] dark:border-navy-600 dark:bg-navy-800"
+    >
       <div className="-ml-1.5 flex flex-1 space-x-2">
+        {/* ATTACHMENT BUTTON */}
         <button className="h-9 w-9 shrink-0 rounded-full flex justify-center items-center text-slate-500 hover:bg-slate-300/20 focus:bg-slate-300/20 active:bg-slate-300/25 dark:text-navy-200 dark:hover:bg-navy-300/20 dark:focus:bg-navy-300/20 dark:active:bg-navy-300/25">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -19,14 +63,17 @@ const SendMessage = () => {
           </svg>
         </button>
 
+        {/* MESSAGE INPUT */}
         <input
           type="text"
           className="form-input focus:outline-none h-9 w-full bg-transparent placeholder:text-slate-400/70"
           placeholder="Write the message"
+          name="message"
         />
       </div>
 
       <div className="-mr-1.5 flex">
+        {/* EMOJI BUTTON */}
         <button className="items-center justify-between flex h-9 w-9 shrink-0 rounded-full p-0 text-slate-500 hover:bg-slate-300/20 focus:bg-slate-300/20 active:bg-slate-300/25 dark:text-navy-200 dark:hover:bg-navy-300/20 dark:focus:bg-navy-300/20 dark:active:bg-navy-300/25">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -43,6 +90,8 @@ const SendMessage = () => {
             ></path>
           </svg>
         </button>
+
+        {/* SEND BUTTON */}
         <button className="items-center justify-between flex h-9 w-9 shrink-0 rounded-full p-0 text-primary hover:bg-primary/20 focus:bg-primary/20 active:bg-primary/25 dark:text-accent-light dark:hover:bg-accent-light/20 dark:focus:bg-accent-light/20 dark:active:bg-accent-light/25">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -60,8 +109,8 @@ const SendMessage = () => {
           </svg>
         </button>
       </div>
-    </div>
+    </form>
   );
-}
+};
 
 export default SendMessage;
