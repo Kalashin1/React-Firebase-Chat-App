@@ -6,19 +6,19 @@ import { auth } from "../../../firebase-settings";
 import { useNavigate } from "react-router-dom";
 import { SCREENS } from "../../../navigation/constants";
 import { DashBoardContex } from "..";
-import { Chat } from "../../../types";
 
 const Sidebar = () => {
   const [users, setUsers] = useState<DocumentData[]>([]);
-  const [chats, setChats] = useState<Chat[]>([]);
+  
 
-  const { setSelectedUserId } = useContext(DashBoardContex);
+  const { setSelectedUserId, chats, setChats } = useContext(DashBoardContex);
 
+  // fetch chats
   useEffect(() => {
     const set_up = async () => {
       const [err, data] = await getUserChats(auth.currentUser?.uid as string);
       if (data) {
-        setChats(data);
+        setChats!(data);
       }
 
       if (err) {
@@ -32,6 +32,8 @@ const Sidebar = () => {
 
   const navigate = useNavigate();
 
+
+  // fetch users
   useEffect(() => {
     const _getUsers = async () => {
       const currentUser = auth.currentUser;
@@ -193,7 +195,7 @@ const Sidebar = () => {
         </div>
 
         <div className="is-scrollbar-hidden mt-3 flex grow flex-col overflow-y-auto">
-          {chats.map((chat) => (
+          {chats?.map((chat, index) => (
             <div
               onClick={() =>
                 setSelectedUserId!(
@@ -202,6 +204,7 @@ const Sidebar = () => {
                     : chat.messages[0].encoder.id
                 )
               }
+              key={index}
               className="flex cursor-pointer items-center space-x-2.5 px-4 py-2.5 font-inter hover:bg-slate-150 dark:hover:bg-navy-600"
             >
               <div className="rounded-full h-10 w-10 flex justify-center items-center border border-gray-600 relative">
@@ -230,9 +233,9 @@ const Sidebar = () => {
                   <p className="line-clamp-1 text-xs+ text-slate-400 dark:text-navy-300">
                     {chat.messages.at(-1)?.textContent.slice(0, 30)}
                   </p>
-                  <div className="flex h-4.5 min-w-[1.125rem] items-center justify-center rounded-full bg-slate-200 px-1.5 text-tiny+ font-medium leading-none text-slate-800 dark:bg-navy-450 dark:text-white">
+                  {/* <div className="flex h-4.5 min-w-[1.125rem] items-center justify-center rounded-full bg-slate-200 px-1.5 text-tiny+ font-medium leading-none text-slate-800 dark:bg-navy-450 dark:text-white">
                     5
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>

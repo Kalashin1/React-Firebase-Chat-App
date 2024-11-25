@@ -26,6 +26,8 @@ export const DashBoardContex = createContext<
     setSelectedUserId: Dispatch<SetStateAction<string>>;
     chatUser: User | null;
     setChatUser: Dispatch<SetStateAction<User | null>>;
+    chats: Chat[];
+    setChats: Dispatch<SetStateAction<Chat[]>>;
   }>
 >({});
 
@@ -34,6 +36,7 @@ const DashBoard = () => {
   const [selectedChat, updateSelectedChat] = useState<Chat | null>(null);
   const [selectedUserId, setSelectedUserId] = useState("");
   const [chatUser, setChatUser] = useState<User | null>(null);
+  const [chats, setChats] = useState<Chat[]>([]);
 
   const handleNotification = () => {
     notify(<NotificationComponent message="Error fetching use" />, {
@@ -71,7 +74,7 @@ const DashBoard = () => {
     setChatUser: setChatUser,
   });
 
-  // console.log("selected chat", selectedChat);
+  console.log("selected chat", selectedChat);
   // console.log("selected user", chatUser);
 
   return (
@@ -85,6 +88,8 @@ const DashBoard = () => {
         setChatUser,
         chatUser,
         setSelectedUserId,
+        chats,
+        setChats
       }}
     >
       <div

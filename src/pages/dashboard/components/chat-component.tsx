@@ -9,6 +9,7 @@ import { auth } from "../../../firebase-settings";
 const ChatComponent = () => {
   const { selectedChat } = useContext(DashBoardContex);
 
+
   return (
     <div className="h-[90.8vh] top-[3.3rem] w-9/12 fixed left-[20.1rem]">
       {selectedChat && (

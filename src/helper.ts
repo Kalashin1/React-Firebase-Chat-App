@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { auth, db } from "./firebase-settings";
+import { auth, db, storage } from "./firebase-settings";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -18,6 +18,7 @@ import {
   where,
 } from "firebase/firestore";
 import { Chat, Message, User as UserType } from "./types";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
 export const CreateAccount = async (
   email: string,
@@ -118,24 +119,23 @@ export const getChatWithUsers = async (
     const docs = await getDocs(q);
 
     if (docs.docs) {
-      const _docs = docs.docs.map((doc) => {
-        const data = { ...doc.data(), id: doc.id } as Chat;
-        console.log(data);
-        if (data.users.find((u) => u === user_2.id)) {
-          return data;
-        } else {
-          return;
-        }
-      });
+      const _docs = docs.docs
+        .map((doc) => {
+          const data = { ...doc.data(), id: doc.id } as Chat;
+          if (data.users.find((u) => u === user_2.id)) {
+            return data.users.includes(user_2.id!) ? data : null;
+          }
+        })
+        .filter((doc) => doc && doc);
+
+      console.log("docs", _docs);
 
       if (_docs[0]) {
         return [null, _docs[0]];
       } else {
         return [null, null];
       }
-    }
-
-    return [null, null];
+    } else return [null, null];
   } catch (error) {
     return [error as Error, null];
   }
@@ -164,7 +164,9 @@ export const sendMessage = async (
   }
 };
 
-export const getUserChats = async (user_id: string): Promise<[Error|null, Chat[]|null]> => {
+export const getUserChats = async (
+  user_id: string
+): Promise<[Error | null, Chat[] | null]> => {
   try {
     const q = query(
       collection(db, "chats"),
@@ -179,4 +181,44 @@ export const getUserChats = async (user_id: string): Promise<[Error|null, Chat[]
   } catch (error) {
     return [error as Error, null];
   }
+};
+
+export const uploadAsset = async (
+  file: any,
+  isVideo?: boolean
+) => {
+  console.log(file);
+  let extension = "mp4";
+  let blob: any = {};
+
+  const metadata = {
+    contentType: "image/jpeg",
+  };
+
+  if (isVideo) {
+    metadata["contentType"] = "video/mp4";
+  } else {
+    extension = file.files
+      ? file.files![0].name.split(".")[1]
+      : file.name.split(".")[1];
+    blob = file as unknown as Blob;
+  }
+
+  const key = Math.floor(Math.random() * 100000).toString();
+  const name = `${key}.${extension}`;
+  localStorage.setItem("name", name);
+
+  const storageRef = ref(storage);
+  const imagesRef = ref(storageRef, `${name}`);
+
+  await uploadBytes(
+    imagesRef,
+    // ts-ignore
+    file.files ? file.files![0] : file[0].name ? file[0] : blob,
+    metadata
+  );
+
+  const imageUrl = await getDownloadURL(imagesRef);
+
+  return imageUrl;
 };

@@ -12,12 +12,14 @@ export default function useGetChat({
 }: {
   notify: () => void;
   chatUser: UserType;
-  setChat: Dispatch<SetStateAction<Chat|null>>;
+  setChat: Dispatch<SetStateAction<Chat | null>>;
 }) {
   const navigate = useNavigate();
   useEffect(() => {
     const run_setup = async () => {
       const currentUser = auth.currentUser;
+
+      if (!chatUser) return;
 
       if (!currentUser) navigate(SCREENS.LOGIN, { replace: true });
       else {
@@ -32,7 +34,7 @@ export default function useGetChat({
         }
 
         if (!chat && !error) {
-          setChat(null)
+          setChat(null);
         }
 
         if (chat) {
@@ -42,5 +44,5 @@ export default function useGetChat({
     };
 
     run_setup();
-  }, [chatUser?.id]);
+  }, [chatUser]);
 }
