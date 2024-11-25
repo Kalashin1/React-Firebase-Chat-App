@@ -74,8 +74,6 @@ const DashBoard = () => {
     setChatUser: setChatUser,
   });
 
-  console.log("selected chat", selectedChat);
-  // console.log("selected user", chatUser);
 
   return (
     <DashBoardContex.Provider

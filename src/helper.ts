@@ -128,7 +128,6 @@ export const getChatWithUsers = async (
         })
         .filter((doc) => doc && doc);
 
-      console.log("docs", _docs);
 
       if (_docs[0]) {
         return [null, _docs[0]];
@@ -187,7 +186,6 @@ export const uploadAsset = async (
   file: any,
   isVideo?: boolean
 ) => {
-  console.log(file);
   let extension = "mp4";
   let blob: any = {};
 

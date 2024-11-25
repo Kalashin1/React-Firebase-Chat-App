@@ -11,7 +11,6 @@ const SendMessage = () => {
   
   const formRef = useRef<HTMLFormElement | null>(null);
 
-  // console.log("selected chat", selectedChat)
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -34,7 +33,6 @@ const SendMessage = () => {
       status: "CREATED",
       assetURL: [assetURL]
     };
-    console.log("message", _message)
     const [error, message_id] = await sendMessage(_message, selectedChat?.id);
     if (error) {
       console.log("message error", error);
